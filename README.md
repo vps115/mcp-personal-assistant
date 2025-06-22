@@ -58,20 +58,22 @@ Implement a **Morning Briefing Assistant** that:
 ## 📁 Project Structure
 
 ```
-personal_assistant/
+mcp-personal-assistant/
 ├── mcp/
-│   ├── tools.py          # Calendar, notes, weather tool functions
-│   ├── memory.py         # Long-term + session memory
-│   ├── instructions.py   # Prompt templates and LLM goals
-│   ├── agent.py          # Main MCP logic (chain-of-tools)
-├── groq_api.py           # Wrapper for llama-3.1-8b-instant
-├── cli.py                # Simple CLI interface
+│   ├── tools.py            # Calendar, notes, weather tool functions
+│   ├── memory.py           # Long-term + session memory
+│   ├── instructions.py     # Prompt templates and LLM goals
+│   ├── agent.py            # Main MCP logic (chain-of-tools)
+├── tool_utils/
+│   ├── google_calendar.py  # Google Calendar integration
+│   └── ...                 # Other tool utility modules
+├── groq_api.py             # Wrapper for llama-3.1-8b-instant
+├── cli.py                  # Simple CLI interface
 ├── data/
 │   ├── notes.db
 │   └── calendar.db
-├── .env                  # Store GROQ_API_KEY
+├── .env                    # Store GROQ_API_KEY
 └── README.md
-
 ```
 
 ---
