@@ -66,7 +66,7 @@ mcp-personal-assistant/
 │   ├── agent.py            # Main MCP logic (chain-of-tools)
 ├── tool_utils/
 │   ├── google_calendar.py  # Google Calendar integration
-│   └── ...                 # Other tool utility modules
+│   └── notion_notes.py     # Notion Notes integration
 ├── groq_api.py             # Wrapper for llama-3.1-8b-instant
 ├── cli.py                  # Simple CLI interface
 ├── data/
