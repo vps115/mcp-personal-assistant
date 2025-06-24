@@ -6,16 +6,15 @@ load_dotenv()
 
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
-def get_weather(city: str = "Delhi", units: str = "metric") -> str:
-    if not API_KEY:
+def get_weather(city: str = "Delhi", units: str = "metric", api_key = API_KEY) -> str:
+    if not api_key:
         return "Weather API key not found."
 
     try:
-        url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units={}'.format(city, API_KEY, "metric")
+        url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units={}'.format(city, api_key, units)
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        print(data)
         
         # Extract weather information
         temp = data["main"]["temp"]

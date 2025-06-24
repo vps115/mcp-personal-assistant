@@ -9,11 +9,11 @@ from googleapiclient.discovery import build
 # If modifying these scopes, delete the token.json
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-def get_service():
+def get_service(scopes:list=SCOPES):
     creds = None
     print('Checking for existing credentials...')
     if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        creds = Credentials.from_authorized_user_file('token.json', scopes)
 
     # If no (valid) credentials, let user log in.
     if not creds or not creds.valid:
@@ -21,7 +21,7 @@ def get_service():
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'google_calendar_credentials.json', SCOPES)
+                'google_calendar_credentials.json', scopes)
             creds = flow.run_local_server(port=0)
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
@@ -30,8 +30,8 @@ def get_service():
 
 # ========== Calendar CRUD ==========
 
-def create_event(title, start_iso, end_iso, location=None, description=None):
-    service = get_service()
+def create_event(title, start_iso, end_iso, location=None, description=None, scopes: list=SCOPES):
+    service = get_service(scopes)
     event = {
         'summary': title,
         'location': location,
@@ -42,8 +42,8 @@ def create_event(title, start_iso, end_iso, location=None, description=None):
     created_event = service.events().insert(calendarId='primary', body=event).execute()
     return created_event['id']
 
-def list_events_for_date(date: str):
-    service = get_service()
+def list_events_for_date(date: str, scopes: list=SCOPES):
+    service = get_service(scopes)
     start = f"{date}T00:00:00+05:30"
     end = f"{date}T23:59:59+05:30"
     events_result = service.events().list(
@@ -55,12 +55,12 @@ def list_events_for_date(date: str):
     ).execute()
     return events_result.get('items', [])
 
-def delete_event(event_id: str):
-    service = get_service()
+def delete_event(event_id: str, scopes: list=SCOPES):
+    service = get_service(scopes)
     service.events().delete(calendarId='primary', eventId=event_id).execute()
 
-def update_event(event_id, **kwargs):
-    service = get_service()
+def update_event(event_id, scopes=SCOPES, **kwargs):
+    service = get_service(scopes)
     event = service.events().get(calendarId='primary', eventId=event_id).execute()
     for key, value in kwargs.items():
         if key in ['summary', 'location', 'description']:
