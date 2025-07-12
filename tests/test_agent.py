@@ -1,35 +1,18 @@
 """
 test_agent.py
-Tests for the MCP agent.
+Unit and integration tests for the MCP agent.
 """
 
 import pytest
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
 
 from mcp.agent import MCPAgent
-from mcp.memory import get_briefing, get_incomplete_todos
+from mcp.memory import get_briefing, get_incomplete_todos, store_todo
 
-@pytest.fixture
-def mock_tools():
-    with patch('mcp.tools.get_calendar_events') as mock_calendar, \
-         patch('mcp.tools.get_notes') as mock_notes, \
-         patch('mcp.tools.get_weather') as mock_weather:
-        
-        mock_calendar.return_value = [
-            {"title": "Test Meeting", "time": "10:00", "duration": "1h"}
-        ]
-        mock_notes.return_value = ["Yesterday's test note"]
-        mock_weather.return_value = {
-            "temperature": 20,
-            "condition": "sunny"
-        }
-        
-        yield {
-            "calendar": mock_calendar,
-            "notes": mock_notes,
-            "weather": mock_weather
-        }
+# Unit Tests with Mocks
+
+def test_get_context(agent, mock_tools):
+    """Test context gathering with mocked tools."""
 
 @pytest.fixture
 def agent():
@@ -71,18 +54,56 @@ def test_run_morning_briefing(agent):
     assert stored_briefing == briefing
 
 def test_complete_todo(agent):
-    # First store a todo
+    """Test todo completion functionality."""
     today = datetime.now().strftime("%Y-%m-%d")
-    from mcp.memory import store_todo
-    
     store_todo(today, "Test todo")
     todos = get_incomplete_todos(today)
     assert len(todos) > 0
     
-    # Complete the todo
     todo_id = todos[0][0]
     agent.complete_todo(todo_id)
     
-    # Verify it's completed
     updated_todos = get_incomplete_todos(today)
     assert len(updated_todos) == len(todos) - 1
+
+# Integration Tests with Real Data
+
+@pytest.mark.integration
+def test_full_workflow(agent, sample_calendar_events, sample_notes, sample_todos):
+    """Test the full agent workflow with sample data."""
+    # 1. Generate morning briefing
+    briefing = agent.run_morning_briefing()
+    assert briefing is not None
+    assert isinstance(briefing, str)
+    
+    # 2. Verify briefing was stored
+    stored_briefing = get_briefing(datetime.now().strftime("%Y-%m-%d"))
+    assert stored_briefing == briefing
+    
+    # 3. Check todos were extracted
+    todos = agent._extract_todos(briefing)
+    assert len(todos) > 0
+    
+    # 4. Test weather query
+    weather = agent.get_weather("Test City")
+    assert weather is not None
+    assert "Temperature" in weather
+
+@pytest.mark.integration
+def test_data_persistence(agent, sample_todos):
+    """Test data persistence across agent restarts."""
+    # 1. Get initial todos
+    today = datetime.now().strftime("%Y-%m-%d")
+    initial_todos = get_incomplete_todos(today)
+    assert len(initial_todos) > 0
+    
+    # 2. Complete a todo
+    todo_id = initial_todos[0][0]
+    agent.complete_todo(todo_id)
+    
+    # 3. Create new agent instance
+    new_agent = MCPAgent(location="Test City")
+    
+    # 4. Verify todo state persists
+    updated_todos = get_incomplete_todos(today)
+    assert len(updated_todos) == len(initial_todos) - 1
