@@ -43,10 +43,7 @@ class MCPAgent:
         
         try:
             # Get today's calendar events
-            calendar_events = tools.get_calendar_events(
-                start_date=self.today,
-                end_date=self.today
-            )
+            calendar_events = tools.get_calendar_events(start_date=self.today)
             logger.debug(f"Retrieved {len(calendar_events)} calendar events")
 
             # Get yesterday's notes
@@ -63,9 +60,9 @@ class MCPAgent:
 
             context = {
                 "calendar_events": calendar_events,
-                "yesterday_notes": yesterday_notes,
+                "notes": yesterday_notes,
                 "weather": weather_info,
-                "incomplete_todos": incomplete_todos,
+                "todos": incomplete_todos,
                 "date": self.today
             }
             
@@ -146,3 +143,41 @@ class MCPAgent:
         else:
             logger.info(f"No briefing found for {date}")
         return briefing
+
+    def get_capabilities(self) -> str:
+        """
+        Get a description of what the agent can do.
+        Returns:
+            str: Capability description
+        """
+        prompt = instructions.get_capability_prompt()
+        context = self._get_context()
+        return generate_response(prompt=prompt, context=context)
+
+    def get_weather(self, location: str = None) -> str:
+        """
+        Get weather information for a location.
+        Args:
+            location (str, optional): City name. Defaults to agent's location.
+        Returns:
+            str: Weather information
+        """
+        try:
+            if location:
+                weather_info = tools.get_weather(location)
+            else:
+                weather_info = tools.get_weather(self.location)
+            return weather_info
+        except Exception as e:
+            logger.error(f"Error getting weather: {str(e)}")
+            return f"Sorry, I couldn't get the weather information for {location or self.location}."
+        
+    def _generate_response(self, prompt: str, context: dict = None) -> str:
+        """
+        Generate a direct response to a prompt using the LLM.
+        Args:
+            prompt (str): The prompt to send to the LLM
+        Returns:
+            str: Generated response
+        """
+        return generate_response(prompt=prompt, context=self._get_context())
