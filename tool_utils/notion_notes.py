@@ -22,8 +22,19 @@ def create_note(content: str, title: str = "Untitled", tags: list = []):
 
     notion.pages.create(parent={"database_id": DB_ID}, properties=props)
 
-def get_notes():
-    results = notion.databases.query(database_id=DB_ID)["results"]
+def get_notes(from_date: str = None):
+    filter_conditions = {}
+    if from_date:
+        filter_conditions = {
+            "filter": {
+                "property": "Date",
+                "date": {
+                    "on_or_after": from_date
+                }
+            }
+        }
+    
+    results = notion.databases.query(database_id=DB_ID, **filter_conditions)["results"]
     notes = []
     for page in results:
         props = page["properties"]

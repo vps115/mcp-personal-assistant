@@ -2,23 +2,32 @@
 tools.py
 Core tool functions for calendar, notes, and weather integration.
 """
+import logging
 
-from tool_utils.google_calendar import get_calendar_events as gc_get_calendar_events
+from tool_utils.google_calendar import list_events_for_date as gc_get_calendar_events
+
+logger = logging.getLogger(__name__)
 from tool_utils.notion_notes import get_notes as nn_get_notes
 from tool_utils.weather import get_weather as w_get_weather
 
 # Calendar tool stub
-def get_calendar_events(start_date, end_date):
+def get_calendar_events(start_date: str, end_date: str = None):
     """
     Fetch calendar events between start_date and end_date.
     Args:
         start_date (str): 'YYYY-MM-DD'
-        end_date (str): 'YYYY-MM-DD'
+        end_date (str, optional): 'YYYY-MM-DD'. If not provided, only get events for start_date
     Returns:
         list: List of event dicts
     """
-    # TODO: Connect to Google Calendar integration
-    return gc_get_calendar_events(start_date, end_date)
+    try:
+        return gc_get_calendar_events(start_date, end_date)
+    except FileNotFoundError:
+        logger.warning("Google Calendar credentials file not found. Calendar integration disabled.")
+        return []
+    except Exception as e:
+        logger.error(f"Error getting calendar events: {str(e)}")
+        return []
 
 # Create calendar event
 def create_calendar_event(title, start_iso, end_iso, location=None, description=None):
@@ -33,8 +42,8 @@ def create_calendar_event(title, start_iso, end_iso, location=None, description=
     Returns:
         str: Event ID
     """
-    from tool_utils.google_calendar import create_event
-    return create_event(title, start_iso, end_iso, location, description)
+    from tool_utils.google_calendar import create_event as gc_create_event
+    return gc_create_event(title, start_iso, end_iso, location, description)
 
 # Update calendar event
 def update_calendar_event(event_id, **kwargs):
@@ -46,8 +55,8 @@ def update_calendar_event(event_id, **kwargs):
     Returns:
         dict: Updated event
     """
-    from tool_utils.google_calendar import update_event
-    return update_event(event_id, **kwargs)
+    from tool_utils.google_calendar import update_event as gc_update_event
+    return gc_update_event(event_id, **kwargs)
 
 # Delete calendar event
 def delete_calendar_event(event_id):
@@ -58,8 +67,8 @@ def delete_calendar_event(event_id):
     Returns:
         None
     """
-    from tool_utils.google_calendar import delete_event
-    return delete_event(event_id)
+    from tool_utils.google_calendar import delete_event as gc_delete_event
+    return gc_delete_event(event_id)
 
 # Notes tool stub
 def get_notes(from_date):

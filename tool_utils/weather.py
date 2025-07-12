@@ -1,30 +1,54 @@
+import logging
 import os
 import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
 
-def get_weather(city: str = "Delhi", units: str = "metric") -> str:
+def get_weather(city: str = "Delhi", units: str = "metric") -> dict:
+    """Get weather information for a city.
+    
+    Args:
+        city (str): City name
+        units (str): Units (metric/imperial)
+        
+    Returns:
+        dict: Weather information or error message
+        
+    Raises:
+        ValueError: If API key is missing
+        requests.RequestException: If API call fails
+    """
     if not API_KEY:
-        return "Weather API key not found."
+        logger.error("OpenWeather API key not found in environment variables")
+        raise ValueError("OpenWeather API key not found. Please set OPENWEATHER_API_KEY in .env")
 
     try:
-        url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units={}'.format(city, API_KEY, "metric")
+        url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units={units}'
         response = requests.get(url)
-        response.raise_for_status()
         data = response.json()
-        print(data)
         
-        # Extract weather information
-        temp = data["main"]["temp"]
-        feels_like = data["main"]["feels_like"]
-        humidity = data["main"]["humidity"]
-        pressure = data["main"]["pressure"]
-        desc = data["weather"][0]["description"]
-        city_name = data["name"]
-        wind_speed = data["wind"]["speed"]
+        if response.status_code != 200 or 'cod' in data and data['cod'] != 200:
+            error_msg = data.get('message', 'Unknown error')
+            logger.error(f"OpenWeather API error: {error_msg}")
+            return f"Weather service error: {error_msg}"
+        
+        # Extract weather information with safe get operations
+        main_data = data.get("main", {})
+        weather_data = data.get("weather", [{}])[0]
+        temp = main_data.get("temp", "N/A")
+        feels_like = main_data.get("feels_like", "N/A")
+        humidity = main_data.get("humidity", "N/A")
+        pressure = main_data.get("pressure", "N/A")
+        desc = weather_data.get("description", "N/A")
+        city_name = data.get("name", city)
+        wind = data.get("wind", {})
+        wind_speed = wind.get("speed", "N/A")
         visibility = data.get("visibility", "N/A")
         
         # Format the weather information
@@ -36,7 +60,7 @@ def get_weather(city: str = "Delhi", units: str = "metric") -> str:
 💧 Humidity: {humidity}%
 🌪  Wind Speed: {wind_speed} m/s
 👁  Visibility: {visibility} meters
-🌤  Conditions: {desc.title()}
+🌤  Conditions: {desc.title() if desc != 'N/A' else desc}
 📊 Pressure: {pressure} hPa
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
