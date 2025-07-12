@@ -2,9 +2,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.json
-
-# C extensions
 *.so
 
 # Distribution / packaging
@@ -25,19 +22,31 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Virtual Environment
+venv/
+env/
+ENV/
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Unit test / coverage reports
+# Credentials and Secrets
+.env
+*.json
+!.env.example
+google_calendar_credentials.json
+token.json
+
+# Logs and Databases
+*.log
+*.sqlite3
+*.db
+
+# Test coverage
 htmlcov/
 .tox/
 .nox/
