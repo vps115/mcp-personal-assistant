@@ -1,113 +1,117 @@
-# mcp-personal-assistant
-LLM based Personal Assistant using MCP
+# MCP Personal Assistant
 
----
+A conversational AI assistant built using the Model Context Protocol (MCP) that helps manage your daily tasks, calendar, notes, and provides weather updates.
 
-# 🧠 Smart Personal Assistant (MCP-Based)
-
-## 🪄 Project Overview
-
-This is an AI-powered **smart personal assistant** built using the principles of the **Model Context Protocol (MCP)**. The assistant is designed to provide useful, contextual summaries and reflections by combining:
-
-- **LLM-based reasoning**
-- **Structured tools** (e.g., calendar, note fetcher, weather API)
-- **Evolving memory** (short- and long-term)
-- **Transparent step-wise execution** (Chain-of-Tools logic)
-
-Unlike traditional chatbots, this assistant is **modular, explainable, and session-aware**, offering users real productivity support.
-
----
-
-## 🎯 Project Goal (v0.1)
-
-Implement a **Morning Briefing Assistant** that:
-
-1. CRUD today's calendar events
-2. CRUD notes and Gathers yesterday’s notes
-3. Pulls in weather information
-4. Summarizes the above in natural language
-5. Remembers previous summaries and missed to-dos
-
----
-
-## 🧱 Current Scope
-
-| Component      | Description |
-|----------------|-------------|
-| ✅ Instructions | The prompt/goal given to the model: _"Give me a morning briefing"_ |
-| ✅ Tools        | - `get_calendar_events(start_date, end_date)`  <br> - `get_notes(from_date)` <br> - *(optional)* `get_weather(location)` |
-| ✅ Memory       | Simple in-memory or SQLite-based DB to store:  <br> - Notes <br> - Past briefings <br> - Incomplete tasks |
-| 🧠 Model        | llama-3.1-8b-instant (for now) |
-| 🧪 Interface    | CLI to test flows; optional FastAPI frontend in later stages |
-
----
-
-## 🔧 Tech Stack
-
-| Area          | Tool |
-|---------------|------|
-| Language Model | llama-3.1-8b-instant |
-| Tool Logic     | Python functions for notes/calendar integration |
-| Orchestration  | Custom Chain-of-Tools logic (MCP-like) |
-| Memory         | SQLite |
-| API Layer      | FastAPI (optional; later stage) |
-| Dev Interface  | CLI (Week 1 MVP) |
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 mcp-personal-assistant/
-├── mcp/
-│   ├── tools.py            # Calendar, notes, weather tool functions
-│   ├── memory.py           # Long-term + session memory
-│   ├── instructions.py     # Prompt templates and LLM goals
-│   ├── agent.py            # Main MCP logic (chain-of-tools)
-├── tool_utils/
-│   ├── google_calendar.py  # Google Calendar integration
-│   ├── notion_notes.py     # Notion Notes integration
-│   └── weather.py          # Weather integration
-├── groq_api.py             # Wrapper for llama-3.1-8b-instant
-├── cli.py                  # Simple CLI interface
-├── data/
-│   ├── notes.db
-│   └── calendar.db
-├── .env                    # Store GROQ_API_KEY
-└── README.md
+├── mcp/                      # Core MCP implementation
+│   ├── agent.py             # Main agent logic
+│   ├── tools.py             # Tool implementations
+│   ├── memory.py            # Memory management
+│   ├── instructions.py      # Prompt templates
+│   └── __init__.py
+├── tool_utils/              # External integrations
+│   ├── google_calendar.py   # Google Calendar integration
+│   ├── notion_notes.py      # Notion Notes integration
+│   ├── weather.py           # Weather API integration
+│   └── __init__.py
+├── tests/                   # Test files
+│   ├── test_agent.py       # Agent tests
+│   └── test_cli.py         # CLI tests
+├── interactive_cli.py       # Main CLI interface
+├── groq_api.py             # LLM API wrapper
+├── requirements.txt         # Dependencies
+├── .env.example            # Environment variables template
+└── README.md               # This file
+
+## Features
+
+- 🗣️ Natural Language Interface
+- 📅 Google Calendar Integration
+- 📝 Notion Notes Integration
+- 🌤️ Weather Updates
+- ✅ Todo Management
+- 🧠 Contextual Awareness
+- 💾 Persistent Storage
+  - SQLite database for todos and briefings
+  - Automatic data directory management
+  - Efficient indexing for better performance
+
+## Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/mcp-personal-assistant.git
+cd mcp-personal-assistant
 ```
 
----
+2. Create and activate virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-## 🚀 Phase 1: MVP Checklist
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
-- [x] Define goal prompt for “Morning Briefing”
-- [ ] Build simple `get_calendar_events()` stub
-- [ ] Build `get_notes()` tool (read from file or DB)
-- [ ] Chain tool outputs into LLM summary
-- [ ] Store and retrieve briefing history
-- [ ] Create CLI to run `briefing()` agent
+4. Set up environment variables:
+- Copy `.env.example` to `.env`
+- Add your API keys and credentials:
+  - GROQ_API_KEY: LLM API key
+  - NOTION_TOKEN: Notion integration token
+  - NOTION_DATABASE_ID: Notion database ID
+  - OPENWEATHER_API_KEY: OpenWeather API key
+  - Set up Google Calendar credentials (see below)
 
----
+5. Set up Google Calendar:
+- Go to Google Cloud Console
+- Create a project and enable Google Calendar API
+- Create credentials and download as `google_calendar_credentials.json`
+- Place in project root
 
-## 🧩 Future Extensions (Post-MVP)
+## Usage
 
-- Add tool: `get_emails_summary()`
-- Add tool: `get_tasks_from_yesterday()`
-- Add journaling support: “How are you feeling today?”
-- Create reflection summary: “How was your week?”
-- Web UI via FastAPI or Streamlit
-- MCP-compliant logging of all tool calls, LLM steps, and memory diffs
+Run the interactive CLI:
+```bash
+python interactive_cli.py
+```
 
----
+The assistant will:
+1. Show your morning briefing
+2. Accept natural language commands
+3. Help manage your tasks, calendar, and notes
 
-## 🧠 MCP Alignment
+Example commands:
+- "What's on my calendar today?"
+- "Add a note about the meeting"
+- "What's the weather like?"
+- "Create a todo to follow up with John"
 
-| MCP Component | Implementation |
-|---------------|----------------|
-| **Instructions** | Defined prompts for goals like “briefing”, “reflect”, etc. |
-| **Tools**        | Each function (calendar, notes, weather) is a callable module |
-| **Memory**       | Long-term: SQLite or ChromaDB <br> Short-term: session context |
-| **Chain-of-Tools** | Sequential reasoning using tools + LLM for synthesis |
-| **Transparency** | Each step (input/output) is visible and loggable |
+## Data Storage
+
+The application uses SQLite for persistent storage:
+- Location: `data/notes.db` (automatically created on first run)
+- Tables:
+  - `briefings`: Stores daily briefing history
+  - `todos`: Manages todo items and their status
+- Features:
+  - Automatic initialization
+  - Performance-optimized indices
+  - Automatic data directory creation
+  - No manual setup required
+
+## Testing
+
+Run tests:
+```bash
+python -m pytest tests/
+```
+
+## License
+
+MIT License - See LICENSE file for details
 
