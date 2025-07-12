@@ -6,23 +6,42 @@ import sqlite3
 import os
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'notes.db')
+# Set up database path
+DB_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
+DB_PATH = os.path.join(DB_DIR, 'notes.db')
 
 # Ensure DB and table exist
 def init_db():
+    """Initialize the SQLite database and create required tables."""
+    # Create data directory if it doesn't exist
+    os.makedirs(DB_DIR, exist_ok=True)
+    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+    
+    # Create briefings table
     c.execute('''CREATE TABLE IF NOT EXISTS briefings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL,
-        summary TEXT NOT NULL
+        summary TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+    
+    # Create todos table
     c.execute('''CREATE TABLE IF NOT EXISTS todos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT NOT NULL,
         todo TEXT NOT NULL,
-        completed INTEGER DEFAULT 0
+        completed INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP
     )''')
+    
+    # Create indices for better performance
+    c.execute('CREATE INDEX IF NOT EXISTS idx_briefings_date ON briefings(date)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_todos_date ON todos(date)')
+    c.execute('CREATE INDEX IF NOT EXISTS idx_todos_completed ON todos(completed)')
+    
     conn.commit()
     conn.close()
 
